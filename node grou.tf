@@ -35,3 +35,8 @@ resource "aws_eks_node_group" "nodes" {
 
   instance_types = ["t3.medium"]
 }
+
+#Creates EC2 instances
+#Uses worker-node IAM role from iam.tf
+#Without this → NO NODES, NO PODS
+#👉 Node group = hands (workers)
