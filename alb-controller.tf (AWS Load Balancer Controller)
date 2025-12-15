@@ -1,0 +1,4 @@
+resource "aws_iam_policy" "alb_controller" {
+  name   = "AWSLoadBalancerControllerIAMPolicy"
+  policy = file("alb-policy.json")
+}
