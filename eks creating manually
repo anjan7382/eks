@@ -1,0 +1,159 @@
+EKS: EKS (Elastic Kubernetes Service) is AWS-managed Kubernetes.
+
+In simple words
+------------------
+EKS = Kubernetes + AWS management
+AWS runs the Kubernetes control plane for you.
+----
+What we are creating
+---------------------
+1 EKS Cluster (Control Plane – managed by AWS)
+1 Node Group
+2 Worker Nodes (EC2)
+IAM Roles
+Cluster Role
+Node Group Role
+VPC + Subnets (new or existing)
+------------------------------------
+STEP 1: Create IAM Role for EKS Cluster
+------
+1️⃣ Go to IAM → Roles → Create role
+Trusted entity: AWS service
+Use case: EKS
+Select: EKS – Cluster
+------------------------
+2️⃣ Attach these policies (MANDATORY):
+✅ AmazonEKSClusterPolicy
+👉 Click Next → Name
+Role name: EKS-Cluster-Role
+Create role
+📌 PurposeThis role allows EKS control plane to talk to AWS services.
+-------------------------------------------------------------------------
+🔹 STEP 2: Create IAM Role for Worker Nodes (Node Group)
+----------
+1️⃣ IAM → Roles → Create role
+Trusted entity: AWS service
+Use case: EC2
+2️⃣ Attach these policies (VERY IMPORTANT):
+✅ AmazonEKSWorkerNodePolicy
+✅ AmazonEKS_CNI_Policy
+✅ AmazonEC2ContainerRegistryReadOnly
+3️⃣ Name the role:
+EKS-Node-Group-Role
+Create role
+📌 Purpose
+This role allows:
+Worker nodes to join cluster
+Pull images from ECR
+Communicate with control plane
+----------------------------------
+STEP 3: Create VPC (If you don’t have one)
+👉 If company already has VPC → Use it
+Otherwise:
+Go to VPC → Create VPC
+Choose:
+VPC and more
+Name: eks-vpc
+IPv4 CIDR: 10.0.0.0/16
+Public subnets: 2  ( LOAD BALANCER , NAT GATEWAY ARE IN PUBLIC SUBNETES)
+Private subnets: 2 ( WORKER NODES , DATABASE R IN PRIVATE)
+NAT Gateway: 1
+Enable DNS hostnames ✔
+Click Create
+📌 EKS needs at least 2 subnets in different AZs
+
+Why worker nodes in private subnet
+----------------------------------
+✅ Short interview answer ( realtime)
+Worker nodes are placed in private subnets to prevent direct internet access, improve security, and follow enterprise security standards.
+EXAMPLE:
+--------
+User (Internet)
+   ↓
+Application Load Balancer (Public Subnet)
+   ↓
+Kubernetes Service / Ingress
+   ↓
+Worker Nodes (Private Subnet)
+   ↓
+Pods (Application)
+🚫 Users never talk directly to worker nodes
+--------------------------------------------------
+🔹 MAIN REASONS (Point-to-Point)
+1️⃣ Security (MOST IMPORTANT)
+If worker nodes are PUBLIC ❌
+Anyone can try:
+SSH
+Port scanning
+Attacks
+Node IP is exposed to internet
+----------------------------------
+If worker nodes are PRIVATE ✅
+No public IP
+No direct inbound traffic
+Only ALB can reach them
+📌 Banking, insurance, fintech → mandatory
+------------------------------------------
+Best answer:
+“Technically yes, but in real-time production we never do that. Worker nodes are always placed in private subnets for security and compliance.”
+---------------------------------------------------------------------------------------------------------------------------------------------------
+🔹 STEP 4: Create EKS Cluster (MANUAL)
+----------
+1️⃣ Go to EKS → Clusters → Create cluster
+Choose:
+Configuration: Standard
+2️⃣ Cluster settings
+Name: my-eks-cluster
+Kubernetes version: (default / latest stable)
+Cluster IAM role:
+👉 Select EKS-Cluster-Role
+3️⃣ Networking
+VPC: eks-vpc
+Subnets: select at least 2 private subnets
+Security group: default or new
+Endpoint access:
+✅ Public
+(Private optional)
+4️⃣ Logging (recommended)
+Enable:
+API
+Audit
+Authenticator
+Controller Manager
+Scheduler
+Click Create
+⏳ Takes 10–15 minutes
+------------------------------------------------------------
+🔹 STEP 5: Create Node Group (2 Worker Nodes)
+-----------
+After cluster becomes ACTIVE 👇
+1️⃣ Open cluster → Compute → Node groups
+Click Add node group
+2️⃣ Node group configuration
+Name: eks-nodegroup-1
+Node IAM role:
+👉 Select EKS-Node-Group-Role
+3️⃣ Networking
+Subnets: select private subnets
+4️⃣ Compute configuration
+AMI type: Amazon Linux 2
+Instance type: t3.medium (recommended)
+Disk size: 20 GiB
+5️⃣ Scaling
+Desired size: 2
+Min size: 2
+Max size: 3
+6️⃣ Remote access (Optional)
+Enable SSH
+Select EC2 key pair
+Allow SSH from your IP
+Click Create
+⏳ Takes 5–10 minutes
+---------------------------------------------------
+🔹 STEP 6: Verify Worker Nodes (IMPORTANT)
+---------------
+On your local / jump server / EC2
+COMMAND: 
+---------
+aws eks update-kubeconfig --region ap-south-1 --name my-eks-cluster
+kubectl get nodes
