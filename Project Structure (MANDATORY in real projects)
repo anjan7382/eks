@@ -1,0 +1,12 @@
+eks-terraform/
+├── backend.tf
+├── provider.tf
+├── vpc.tf
+├── sg.tf
+├── iam.tf
+├── eks.tf
+├── nodegroup.tf
+├── alb-controller.tf
+├── variables.tf
+├── terraform.tfvars
+├── outputs.tf
