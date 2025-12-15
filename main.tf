@@ -59,3 +59,4 @@ resource "aws_eks_node_group" "this" {
     aws_iam_role_policy_attachment.eks_node_AmazonEC2ContainerRegistryReadOnly
   ]
 }
+
