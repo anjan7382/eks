@@ -59,3 +59,10 @@ resource "aws_iam_role_policy_attachment" "node_ecr_policy" {
   role       = aws_iam_role.eks_node_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
+
+#iam.tf — ONLY CREATES PERMISSIONS
+#Creates IAM roles and policies
+#Does NOT create EKS
+#Does NOT create EC2
+#Does NOT run pods
+#👉 IAM = who is allowed to do what
