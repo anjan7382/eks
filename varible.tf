@@ -1,21 +1,32 @@
 variable "region" {
-  default = "ap-south-1"
+  description = "AWS region"
+  type        = string
+  default     = "ap-south-1"
 }
 
 variable "cluster_name" {
-  default = "prod-eks-cluster"
+  description = "EKS cluster name"
+  type        = string
+  default     = "prod-eks-cluster"
 }
 
 variable "vpc_cidr" {
-  default = "10.0.0.0/16"
+  description = "VPC CIDR"
+  type        = string
+  default     = "10.0.0.0/16"
 }
 
 variable "public_subnets" {
-  default = ["10.0.1.0/24", "10.0.2.0/24"]
+  description = "Public subnet CIDRs"
+  type        = list(string)
+  default     = ["10.0.1.0/24", "10.0.2.0/24"]
 }
 
 variable "private_subnets" {
-  default = ["10.0.101.0/24", "10.0.102.0/24"]
+  description = "Private subnet CIDRs"
+  type        = list(string)
+  default     = ["10.0.101.0/24", "10.0.102.0/24"]
 }
+
 
 
