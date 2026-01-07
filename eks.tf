@@ -1,24 +1,17 @@
-resource "aws_iam_role" "eks_cluster_role" {
-  name = "eks-cluster-role"
+resource "aws_eks_cluster" "eks" {
+  name     = var.cluster_name
+  role_arn = aws_iam_role.eks_cluster_role.arn
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Principal = { Service = "eks.amazonaws.com" }
-      Action = "sts:AssumeRole"
-    }]
-  })
+  vpc_config {
+    subnet_ids = concat(
+      aws_subnet.public[*].id,
+      aws_subnet.private[*].id
+    )
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.eks_cluster_policy
+  ]
 }
 
-resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
-  role       = aws_iam_role.eks_cluster_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-}
-
-#eks.tf — CREATES THE EKS CONTROL PLANE
-#Creates Kubernetes API server
-#Uses EKS IAM role from iam.tf
-#Without this → NO CLUSTER
-#👉 EKS = brain (master)
 
