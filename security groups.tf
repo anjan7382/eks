@@ -3,6 +3,7 @@ resource "aws_security_group" "eks_cluster_sg" {
   vpc_id = aws_vpc.eks.id
 
   ingress {
+    description = "Kubernetes API"
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
@@ -15,6 +16,11 @@ resource "aws_security_group" "eks_cluster_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = {
+    Name = "eks-cluster-sg"
+  }
 }
+
 
 
