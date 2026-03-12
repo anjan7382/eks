@@ -1,32 +1,41 @@
-variable "region" {
-  description = "AWS region"
-  type        = string
-  default     = "ap-south-1"
-}
-
 variable "cluster_name" {
-  description = "EKS cluster name"
-  type        = string
-  default     = "prod-eks-cluster"
+  type = string
 }
 
-variable "vpc_cidr" {
-  description = "VPC CIDR"
-  type        = string
-  default     = "10.0.0.0/16"
+variable "kubernetes_version" {
+  type = string
 }
 
-variable "public_subnets" {
-  description = "Public subnet CIDRs"
-  type        = list(string)
-  default     = ["10.0.1.0/24", "10.0.2.0/24"]
+variable "vpc_id" {
+  type = string
 }
 
 variable "private_subnets" {
-  description = "Private subnet CIDRs"
-  type        = list(string)
-  default     = ["10.0.101.0/24", "10.0.102.0/24"]
+  type = list(string)
 }
 
+variable "control_plane_subnets" {
+  type = list(string)
+}
+
+variable "instance_type" {
+  type = string
+}
+
+variable "min_size" {
+  type = number
+}
+
+variable "max_size" {
+  type = number
+}
+
+variable "desired_size" {
+  type = number
+}
+
+variable "environment" {
+  type = string
+}
 
 
