@@ -17,7 +17,6 @@ control_plane_subnets = [       # private subnets for both worker nodes and eks 
 ]
 
 instance_type = "t3.medium"
-key_pair = "name of keypair"
 
 min_size     = 2
 max_size     = 5
