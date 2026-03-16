@@ -99,22 +99,48 @@ Best answer:
 ---------------------------------------------------------------------------------------------------------------------------------------------------
 🔹 STEP 4: Create EKS Cluster (MANUAL)
 ----------
-1️⃣ Go to EKS → Clusters → Create cluster
+Go to EKS → Clusters → Create cluster
+-----------------------------------------
 Choose:
-Configuration: Standard
-2️⃣ Cluster settings
-Name: my-eks-cluster
-Kubernetes version: (default / latest stable)
-Cluster IAM role:
-👉 Select EKS-Cluster-Role
-3️⃣ Networking
+Configuration options : select - Custom configuration
+EKS Auto Mode : diable
+Cluster configuration :
+name; give any name
+Cluster IAM role : add role that created for eks or we can crste role there it by clicking create recomanded role
+Kubernetes version settings : (default / latest stable)
+Upgrade policy: Standard support
+Control plane scaling tier : Use a scaling tier - diable
+Auto Mode Compute new : If EKS Auto Mode is not managing compute resources, 
+                        you need to create compute resources after the cluster is ready.
+                        This is normal when you disabled EKS Auto Mode earlier.
+                        What It Means
+                        Since Auto Mode is disabled, AWS will NOT automatically create worker nodes.
+                        After the cluster is created, you must create a Node Group manually.
+Cluster access : cluster cluster administrator access ( select this) 
+Cluster authentication mode : EKS API and ConfigMap ( select this)
+Envelope encryption: Use your own AWS KMS key (disable) 
+ARC Zonal shift : disable
+Deletion protection : Turn on deletion protection (enable it) in realtime my compines enable this for accidental 
+                      deletion of production of clusters
+ex: devops engineer accidentally runs : aws eks delete-cluster
+if deletion protection is ON AWS will block the delection
+click: next
+NETWORKING:
+-------------------
 VPC: eks-vpc
 Subnets: select at least 2 private subnets
 Security group: default or new
 Endpoint access:
 ✅ Public
 (Private optional)
-4️⃣ Logging (recommended)
+Configure observability
+------------------------
+Prometheus : diable
+CloudWatch : diable  
+Container network observability : Enable network monitoring (diable)
+
+Control plane logs 
+-----------------------
 Enable:
 API
 Audit
@@ -133,27 +159,103 @@ Click Add node group
 Name: eks-nodegroup-1
 Node IAM role:
 👉 Select EKS-Node-Group-Role
-3️⃣ Networking
-Subnets: select private subnets
-4️⃣ Compute configuration
-AMI type: Amazon Linux 2
+Launch template : disable
+Kubernetes labels : disable
+Kubernetes taints : disable
+Tags : add tags 
+Set compute and scaling configuration
+-----------------------------------------
+Node group compute configuration:
+AMI type : Amazon Linux 2
+Capacity type : on-demand
 Instance type: t3.medium (recommended)
 Disk size: 20 GiB
-5️⃣ Scaling
+ Scaling
 Desired size: 2
 Min size: 2
 Max size: 3
-6️⃣ Remote access (Optional)
-Enable SSH
-Select EC2 key pair
-Allow SSH from your IP
-Click Create
-⏳ Takes 5–10 minutes
+Node group update configuration:
+------------------------------------
+Maximum unavailable :selsct number
+value ; select 1
+Update strategy ; default
+Node auto repair configuration : Enable node auto repair ( enable )
+click : next
+Specify networking:
+--------------------------
+Node group network configuration: select to private subnets
+click : next 
+review and create:
+----------------------
+review what i have configure once then 
+click create
+i will take 5-10 minutes
+
 ---------------------------------------------------
 🔹 STEP 6: Verify Worker Nodes (IMPORTANT)
 ---------------
 On your local / jump server / EC2
 COMMAND: 
 ---------
-aws eks update-kubeconfig --region ap-south-1 --name my-eks-cluster
+to connect to jump or boston to run ymls
+---------------------------------------------
+Install kubectl :
+1) curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+2) chmod +x kubectl
+3) sudo mv kubectl /usr/local/bin/
+Install AWS CLI:
+1) sudo apt update
+2) sudo apt install unzip curl -y
+3) Download AWS CLI: curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+4) Unzip: unzip awscliv2.zip
+5) Install: sudo ./aws/install
+6) Check installation: aws --version
+Configure AWS CLI (for EKS access):
+1) aws configure
+enter: AWS Access Key
+      AWS Secret Key
+      Region (example: ap-south-1)
+      Output format: json
+
+Tip (Real production practice):
+---------------------------------
+Instead of aws configure, many companies attach an IAM role to the Bastion EC2 instance
+so AWS CLI works automatically without storing keys.
+
+Create IAM Role for Bastion Server
+---------------------------------------
+Go to AWS Console → IAM → Roles → Create Role
+Select:
+Trusted entity → EC2
+Click Next
+Attach policies like:
+Common policies for EKS access:
+----------------------------------
+AmazonEKSClusterPolicy
+AmazonEKSWorkerNodePolicy
+AmazonEC2ContainerRegistryReadOnly
+Give role name: bastion-eks-role
+Create the role.
+
+Attach Role to Bastion EC2
+----------------------------
+EC2 → Instances → Select Bastion Instance
+Actions
+ → Security
+ → Modify IAM Role
+Select the role: which i have created
+save.
+Now the EC2 instance has temporary AWS credentials automatically.
+
+Verify IAM Role from Bastion Server
+------------------------------------
+aws sts get-caller-identity
+
+Connect Bastion Server to EKS:
+----------------------------------
+1) aws eks --region ap-south-1 update-kubeconfig --name <cluster-name> : is used to connect your 
+                                                                      local kubectl to your EKS cluster
+                                                                      in Amazon Elastic Kubernetes Service.
+Check cluster:
 kubectl get nodes
+
